@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe Bruto</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --bg:       #090d13;
+  --bg2:      #0e1520;
+  --bg3:      #131d2b;
+  --card:     #141e2e;
+  --inp:      #192438;
+  --acc:      #00c2ff;
+  --acc2:     #ff6b00;
+  --grn:      #00e676;
+  --gold:     #ffd600;
+  --red:      #ff3d57;
+  --txt:      #dde6f0;
+  --txt2:     #6e88a4;
+  --txt3:     #3a5068;
+  --bdr:      #1b2d42;
+  --bdr2:     #243c56;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Barlow',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 15% 0%,rgba(0,194,255,.05) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 35% at 85% 100%,rgba(255,107,0,.04) 0%,transparent 60%);
+}
+
+/* ═══ TOPBAR ═══ */
+.topbar{
+  background:var(--bg2);
+  border-bottom:1px solid var(--bdr);
+  height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 4px 32px rgba(0,0,0,.5);
+}
+.brand{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:18px;font-weight:900;letter-spacing:4px;
+  text-transform:uppercase;color:var(--acc);
+  display:flex;align-items:center;gap:10px;
+}
+.brand span{color:var(--txt2);font-weight:300}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+
+/* ═══ BUTTONS ═══ */
+.btn{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:12px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;padding:8px 18px;
+  border-radius:4px;border:none;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;gap:6px;
+}
+.btn-acc{background:var(--acc);color:#000}
+.btn-acc:hover{background:#33cfff;transform:translateY(-1px)}
+.btn-org{background:var(--acc2);color:#fff}
+.btn-org:hover{background:#ff8c33;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--bdr)}
+.btn-ghost:hover{background:var(--bg3);color:var(--txt)}
+
+/* ═══ LAYOUT ═══ */
+.wrap{max-width:1080px;margin:0 auto;padding:36px 20px 100px}
+
+.sec-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:3.5px;
+  text-transform:uppercase;color:var(--acc);
+  margin-bottom:18px;
+  display:flex;align-items:center;gap:12px;
+}
+.sec-title::after{content:'';flex:1;height:1px;
+  background:linear-gradient(to right,var(--bdr2),transparent)}
+
+.card{
+  background:var(--card);border:1px solid var(--bdr);
+  border-radius:10px;padding:24px;margin-bottom:20px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;
+  width:3px;height:100%;
+  background:linear-gradient(to bottom,var(--acc),transparent);
+  opacity:.4;
+}
+
+/* ═══ FORMS ═══ */
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:10px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--txt3)}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  background:var(--inp);border:1px solid var(--bdr);border-radius:5px;
+  color:var(--txt);font-family:'Barlow',sans-serif;font-size:14px;
+  padding:9px 13px;outline:none;transition:border-color .2s;width:100%;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+select option{background:var(--card)}
+textarea{resize:vertical;min-height:120px;line-height:1.7}
+
+/* Clase para que el div temporal herede el estilo visual exacto del campo de texto */
+.text-print-block {
+  background: var(--inp);
+  border: 1px solid var(--bdr);
+  border-radius: 5px;
+  color: var(--txt);
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  padding: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 120px;
+  width: 100%;
+}
+
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* ═══ FOTO JUGADOR ═══ */
+.jugador-layout{display:grid;grid-template-columns:155px 1fr;gap:24px;align-items:start}
+.foto-box{
+  border:2px dashed var(--bdr2);border-radius:8px;
+  min-height:195px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  cursor:pointer;transition:all .25s;overflow:hidden;position:relative;
+}
+.foto-box:hover{border-color:var(--acc)}
+.foto-box input{display:none}
+.foto-box img{width:100%;height:195px;object-fit:cover;border-radius:6px}
+.foto-ov{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.7));
+  padding:6px;font-size:10px;color:var(--txt3);text-align:center;
+}
+
+/* ═══ RESULTADO ═══ */
+.res-wrap{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:16px;
+  align-items:center;background:var(--inp);
+  border-radius:8px;padding:18px;border:1px solid var(--bdr);
+}
+.res-half{display:flex;flex-direction:column;align-items:center;gap:5px}
+.res-lbl{font-size:10px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--txt3)}
+.res-inputs{display:flex;align-items:center;gap:8px;
+  font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800}
+.res-inputs input{width:58px;text-align:center;
+  font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;padding:6px}
+.res-sep{font-family:'Barlow Condensed',sans-serif;font-size:36px;color:var(--txt3)}
+.vs-pill{
+  background:linear-gradient(135deg,var(--acc),#0077aa);
+  color:#000;font-family:'Barlow Condensed',sans-serif;
+  font-size:12px;font-weight:900;letter-spacing:2px;
+  padding:6px 14px;border-radius:20px;text-align:center;
+}
+
+/* ═══ ICON SELECTS ═══ */
+.ico-sel{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.ico-opt input{display:none}
+.ico-opt label{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:9px 4px;border-radius:6px;border:1px solid var(--bdr);
+  cursor:pointer;transition:all .2s;font-size:9px;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--txt3);background:var(--inp);
+}
+.ico-opt input:checked+label{border-color:var(--acc);background:rgba(0,194,255,.08);color:var(--acc)}
+
+/* ═══ RATING STARS ═══ */
+.stars{display:flex;gap:4px;align-items:center;margin-top:6px}
+.star{background:none;border:none;cursor:pointer;font-size:28px;
+  color:var(--bdr2);transition:all .15s;padding:1px;line-height:1}
+.star.on{color:var(--gold)}
+.star:hover{transform:scale(1.2)}
+.rval{font-family:'Barlow Condensed',sans-serif;font-size:16px;
+  font-weight:700;color:var(--gold);margin-left:6px;min-width:28px}
+.rbar-track{height:3px;background:var(--inp);border-radius:2px;margin-top:6px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:2px;transition:width .4s ease}
+.fill-tec{background:linear-gradient(90deg,var(--acc),#0077aa)}
+.fill-tac{background:linear-gradient(90deg,var(--acc2),#cc4400)}
+.fill-fis{background:linear-gradient(90deg,var(--grn),#00a050)}
+.fill-psi{background:linear-gradient(90deg,var(--gold),#cc9900)}
+
+/* ═══ PROFILE CARDS ═══ */
+.pcard{background:var(--card);border:1px solid var(--bdr);border-radius:10px;
+  overflow:hidden;margin-bottom:16px;transition:border-color .2s}
+.phead{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 22px;background:var(--bg2);
+  border-bottom:1px solid var(--bdr);cursor:pointer;user-select:none;
+}
+.phead-l{display:flex;align-items:center;gap:12px}
+.pbadge{width:34px;height:34px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-size:17px}
+.pb-tec{background:rgba(0,194,255,.12)}
+.pb-tac{background:rgba(255,107,0,.12)}
+.pb-fis{background:rgba(0,230,118,.12)}
+.pb-psi{background:rgba(255,214,0,.12)}
+.pname{font-family:'Barlow Condensed',sans-serif;font-size:15px;
+  font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.pn-tec{color:var(--acc)}.pn-tac{color:var(--acc2)}
+.pn-fis{color:var(--grn)}.pn-psi{color:var(--gold)}
+.psub{font-size:11px;color:var(--txt3);margin-top:1px}
+.pbody{padding:18px 22px 22px}
+.chev{font-size:14px;color:var(--txt3);transition:transform .2s}
+.chev.open{transform:rotate(180deg)}
+.ptag{display:inline-block;padding:3px 10px;border-radius:3px;
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.pt-tec{background:rgba(0,194,255,.12);color:var(--acc)}
+.pt-tac{background:rgba(255,107,0,.12);color:var(--acc2)}
+.pt-fis{background:rgba(0,230,118,.12);color:var(--grn)}
+.pt-psi{background:rgba(255,214,0,.12);color:var(--gold)}
+
+/* ═══ RADAR CHART ═══ */
+.radar-wrap{display:flex;flex-direction:column;align-items:center;padding:16px 0 8px}
+.radar-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--txt3);margin-bottom:16px;
+}
+#radarCanvas{max-width:340px;width:100%}
+.radar-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 20px;margin-top:14px}
+.rl-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--txt2)}
+.rl-dot{width:10px;height:10px;border-radius:50%}
+
+/* ═══ STATS DISPLAY ═══ */
+.stats-row{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:16px}
+.stat-box{background:var(--inp);border:1px solid var(--bdr);border-radius:7px;padding:12px 10px;text-align:center}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--acc);line-height:1}
+.stat-lbl{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);margin-top:4px}
+
+/* ═══ DECISION BADGE ═══ */
+.dec-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.dec-opt input{display:none}
+.dec-opt label{
+  padding:10px 20px;border-radius:6px;border:2px solid var(--bdr);
+  cursor:pointer;transition:all .2s;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--txt3);
+}
+.dec-opt input:checked+label.seguir{border-color:var(--gold);background:rgba(255,214,0,.1);color:var(--gold)}
+.dec-opt input:checked+label.fichar{border-color:var(--grn);background:rgba(0,230,118,.1);color:var(--grn)}
+.dec-opt input:checked+label.descartar{border-color:var(--red);background:rgba(255,61,87,.1);color:var(--red)}
+
+@media print{
+  .topbar,.btn{display:none!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#090d13!important;color:#dde6f0!important;margin:0;padding:0}
+  .wrap{padding:16px!important}
+  .card,.pcard{
+    border:1px solid #1b2d42!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    margin-bottom:12px!important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">⚽ Informe <span>Bruto</span></div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost" onclick="clearAll()">↺ Limpiar</button>
+    <button class="btn btn-org" onclick="exportPDF()">🖨 Exportar PDF</button>
+  </div>
+</header>
+
+<div class="wrap" id="reportContent">
+
+<div class="sec-title">① Identidad del Informe</div>
+<div class="card">
+  <div class="logos-grid">
+    <div class="logo-box" onclick="document.getElementById('inp-escudo').click()">
+      <input type="file" id="inp-escudo" accept="image/*" onchange="prevLogo(this,'prev-escudo','ph-escudo')">
+      <div id="ph-escudo"><div class="logo-ico">🛡️</div>
+        <div class="logo-lbl">Escudo del Club</div>
+        <div class="logo-hint">Clic para cargar imagen</div></div>
+      <img id="prev-escudo" style="display:none" alt="Escudo">
+    </div>
+    <div class="logo-box" onclick="document.getElementById('inp-logo').click()">
+      <input type="file" id="inp-logo" accept="image/*" onchange="prevLogo(this,'prev-logo','ph-logo')">
+      <div id="ph-logo"><div class="logo-ico">🔍</div>
+        <div class="logo-lbl">Mi Logo Scout</div>
+        <div class="logo-hint">Clic para cargar imagen</div></div>
+      <img id="prev-logo" style="display:none" alt="Logo">
+    </div>
+  </div>
+</div>
+
+<div class="sec-title">② Datos del Partido</div>
+<div class="card">
+  <div class="g3" style="margin-bottom:14px">
+    <div class="fg"><label>Liga / Competencia</label>
+      <input type="text" id="liga" placeholder="Ej: Liga Profesional Argentina"></div>
+    <div class="fg"><label>Fecha</label>
+      <input type="date" id="fecha"></div>
+    <div class="fg"><label>Estadio / Lugar</label>
+      <input type="text" id="estadio" placeholder="Ej: Estadio Monumental"></div>
+  </div>
+  <div class="g3" style="margin-bottom:18px">
+    <div class="fg"><label>Equipo Local</label>
+      <input type="text" id="equipo-local" placeholder="Local"></div>
+    <div class="fg"><label>Equipo Visitante</label>
+      <input type="text" id="equipo-visitante" placeholder="Visitante"></div>
+    <div class="fg"><label>Sistema de Juego</label>
+      <select id="sistema-juego">
+        <option value="">Seleccionar…</option>
+        <option>4-3-3</option><option>4-4-2</option><option>4-2-3-1</option>
+        <option>3-5-2</option><option>5-3-2</option>
+      </select></div>
+  </div>
+  <div class="g2" style="margin-bottom:22px">
+    <div class="fg">
+      <label>Estado del Tiempo</label>
+      <div class="ico-sel">
+        <div class="ico-opt"><input type="radio" name="tiempo" id="t1"><label for="t1">☀️ Soleado</label></div>
+        <div class="ico-opt"><input type="radio" name="tiempo" id="t2"><label for="t2">⛅ Nublado</label></div>
+        <div class="ico-opt"><input type="radio" name="tiempo" id="t3"><label for="t3">🌧️ Lluvia</label></div>
+        <div class="ico-opt"><input type="radio" name="tiempo" id="t4"><label for="t4">❄️ Frío</label></div>
+        <div class="ico-opt"><input type="radio" name="tiempo" id="t5"><label for="t5">💨 Viento</label></div>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Estado del Campo</label>
+      <div class="ico-sel">
+        <div class="ico-opt"><input type="radio" name="campo" id="c1"><label for="c1">🟢 Perfecto</label></div>
+        <div class="ico-opt"><input type="radio" name="campo" id="c2"><label for="c2">🟡 Bueno</label></div>
+        <div class="ico-opt"><input type="radio" name="campo" id="c3"><label for="c3">🟠 Regular</label></div>
+        <div class="ico-opt"><input type="radio" name="campo" id="c4"><label for="c4">🔴 Malo</label></div>
+        <div class="ico-opt"><input type="radio" name="campo" id="c5"><label for="c5">💧 Húmedo</label></div>
+      </div>
+    </div>
+  </div>
+  <div class="res-wrap">
+    <div class="res-half">
+      <span class="res-lbl">PT</span>
+      <div class="res-inputs"><input type="number" id="r1a" value="0"><span>—</span><input type="number" id="r1b" value="0"></div>
+    </div>
+    <div class="vs-pill">⏱ RESULTADO</div>
+    <div class="res-half">
+      <span class="res-lbl">ST</span>
+      <div class="res-inputs"><input type="number" id="r2a" value="0"><span>—</span><input type="number" id="r2b" value="0"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-title">③ Ficha del Jugador</div>
+<div class="card">
+  <div class="jugador-layout">
+    <div class="foto-box" onclick="document.getElementById('inp-foto').click()">
+      <input type="file" id="inp-foto" accept="image/*" onchange="prevLogo(this,'prev-foto','ph-foto')">
+      <div id="ph-foto">👤<br><span style="font-size:10px">Foto Jugador</span></div>
+      <img id="prev-foto" style="display:none; width:100%; height:195px; object-fit:cover;" alt="Jugador">
+    </div>
+    <div>
+      <div class="g3" style="margin-bottom:14px">
+        <div class="fg"><label>Nombre</label><input type="text" id="nombre" placeholder="Nombre"></div>
+        <div class="fg"><label>Edad</label><input type="number" id="edad" placeholder="Años"></div>
+        <div class="fg"><label>Nacionalidad</label><input type="text" id="nac" placeholder="País"></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label>Posición</label><input type="text" id="posicion" placeholder="Posición"></div>
+        <div class="fg"><label>Club Actual</label><input type="text" id="club" placeholder="Club"></div>
+        <div class="fg"><label>Altura (cm)</label><input type="number" id="altura" placeholder="180"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-title">④ Rendimiento en el Partido</div>
+<div class="card">
+  <div class="g4" style="margin-bottom:12px">
+    <div class="fg"><label>Minutos</label><input type="number" id="minutos" value="90" oninput="updateStats()"></div>
+    <div class="fg"><label>Goles</label><input type="number" id="goles" value="0" oninput="updateStats()"></div>
+    <div class="fg"><label>Asistencias</label><input type="number" id="asistencias" value="0" oninput="updateStats()"></div>
+    <div class="fg"><label>Duelos Ganados</label><input type="number" id="duelos" value="0" oninput="updateStats()"></div>
+  </div>
+  <div class="g3" style="margin-bottom:12px">
+    <div class="fg"><label>Nota General</label><input type="number" id="promedio" value="6.0" step="0.1" oninput="updateStats()"></div>
+    <div class="fg"><label>xG</label><input type="number" id="xg" value="0.0" step="0.01" oninput="updateStats()"></div>
+    <div class="fg"><label>xA</label><input type="number" id="xa" value="0.0" step="0.01" oninput="updateStats()"></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="sv-min">90</div><div class="stat-lbl">Minutos</div></div>
+    <div class="stat-box"><div class="stat-val" id="sv-gol">0</div><div class="stat-lbl">Goles</div></div>
+    <div class="stat-box"><div class="stat-val" id="sv-asi">0</div><div class="stat-lbl">Asistencias</div></div>
+    <div class="stat-box"><div class="stat-val" id="sv-due">0</div><div class="stat-lbl">Duelos</div></div>
+    <div class="stat-box"><div class="stat-val" id="sv-pro">6.0</div><div class="stat-lbl">Promedio</div></div>
+    <div class="stat-box"><div class="stat-val" id="sv-xg">0.0</div><div class="stat-lbl">xG</div></div>
+    <div class="stat-box"><div class="stat-val" id="sv-xa">0.0</div><div class="stat-lbl">xA</div></div>
+  </div>
+  <div style="margin-top:20px">
+    <div class="fg" style="margin-bottom:8px"><label>Decisión de Captación</label></div>
+    <div class="dec-row">
+      <div class="dec-opt"><input type="radio" name="decision" id="d1" checked><label for="d1" class="seguir">⏳ Seguir</label></div>
+      <div class="dec-opt"><input type="radio" name="decision" id="d2"><label for="d2" class="fichar">✅ Fichar</label></div>
+      <div class="dec-opt"><input type="radio" name="decision" id="d3"><label for="d3" class="descartar">❌ Descartar</label></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-title">⑤ Radar de Rendimiento</div>
+<div class="card">
+  <div class="radar-wrap">
+    <div class="radar-title">Análisis Visual — 4 Perfiles</div>
+    <div style="width:340px; height:340px; position:relative;">
+      <canvas id="radarCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="sec-title">⑥ Perfiles del Jugador</div>
+
+<div class="pcard" id="pc-tec">
+  <div class="phead" onclick="toggleP('tec')">
+    <div class="phead-l">
+      <div class="pbadge pb-tec">⚙️</div>
+      <div><div class="pname pn-tec">Perfil Técnico</div><div class="psub">Control · Pase · Remate · Regate</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="ptag pt-tec" id="ptag-tec">Valoración: 3</span>
+      <span class="chev open" id="chev-tec">▾</span>
+    </div>
+  </div>
+  <div class="pbody" id="pb-tec">
+    <div class="stars">
+      <button class="star on" onclick="setR('tec',1)">★</button>
+      <button class="star on" onclick="setR('tec',2)">★</button>
+      <button class="star on" onclick="setR('tec',3)">★</button>
+      <button class="star" onclick="setR('tec',4)">★</button>
+      <button class="star" onclick="setR('tec',5)">★</button>
+      <span class="rval" id="rv-tec">3.0</span>
+    </div>
+    <div class="fg" style="margin-top:14px">
+      <label>Observaciones Técnicas (máx. 8 líneas)</label>
+      <textarea id="obs-tec" placeholder="Escribí o pegá tu análisis acá..."></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="pcard" id="pc-tac">
+  <div class="phead" onclick="toggleP('tac')">
+    <div class="phead-l">
+      <div class="pbadge pb-tac">🧩</div>
+      <div><div class="pname pn-tac">Perfil Táctico</div><div class="psub">Posicionamiento · Lectura · Pressing</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="ptag pt-tac" id="ptag-tac">Valoración: 3</span>
+      <span class="chev open" id="chev-tac">▾</span>
+    </div>
+  </div>
+  <div class="pbody" id="pb-tac">
+    <div class="stars">
+      <button class="star on" onclick="setR('tac',1)">★</button>
+      <button class="star on" onclick="setR('tac',2)">★</button>
+      <button class="star on" onclick="setR('tac',3)">★</button>
+      <button class="star" onclick="setR('tac',4)">★</button>
+      <button class="star" onclick="setR('tac',5)">★</button>
+      <span class="rval" id="rv-tac">3.0</span>
+    </div>
+    <div class="fg" style="margin-top:14px">
+      <label>Observaciones Tácticas (máx. 8 líneas)</label>
+      <textarea id="obs-tac" placeholder="Escribí o pegá tu análisis acá..."></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="pcard" id="pc-fis">
+  <div class="phead" onclick="toggleP('fis')">
+    <div class="phead-l">
+      <div class="pbadge pb-fis">💪</div>
+      <div><div class="pname pn-fis">Perfil Físico</div><div class="psub">Velocidad · Resistencia · Potencia</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="ptag pt-fis" id="ptag-fis">Valoración: 3</span>
+      <span class="chev open" id="chev-fis">▾</span>
+    </div>
+  </div>
+  <div class="pbody" id="pb-fis">
+    <div class="stars">
+      <button class="star on" onclick="setR('fis',1)">★</button>
+      <button class="star on" onclick="setR('fis',2)">★</button>
+      <button class="star on" onclick="setR('fis',3)">★</button>
+      <button class="star" onclick="setR('fis',4)">★</button>
+      <button class="star" onclick="setR('fis',5)">★</button>
+      <span class="rval" id="rv-fis">3.0</span>
+    </div>
+    <div class="fg" style="margin-top:14px">
+      <label>Observaciones Físicas (máx. 8 líneas)</label>
+      <textarea id="obs-fis" placeholder="Escribí o pegá tu análisis acá..."></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="pcard" id="pc-psi">
+  <div class="phead" onclick="toggleP('psi')">
+    <div class="phead-l">
+      <div class="pbadge pb-psi">🧠</div>
+      <div><div class="pname pn-psi">Perfil Psicológico</div><div class="psub">Mentalidad · Liderazgo · Actitud</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="ptag pt-psi" id="ptag-psi">Valoración: 3</span>
+      <span class="chev open" id="chev-psi">▾</span>
+    </div>
+  </div>
+  <div class="pbody" id="pb-psi">
+    <div class="stars">
+      <button class="star on" onclick="setR('psi',1)">★</button>
+      <button class="star on" onclick="setR('psi',2)">★</button>
+      <button class="star on" onclick="setR('psi',3)">★</button>
+      <button class="star" onclick="setR('psi',4)">★</button>
+      <button class="star" onclick="setR('psi',5)">★</button>
+      <span class="rval" id="rv-psi">3.0</span>
+    </div>
+    <div class="fg" style="margin-top:14px">
+      <label>Observaciones Psicológicas (máx. 8 líneas)</label>
+      <textarea id="obs-psi" placeholder="Escribí o pegá tu análisis acá..."></textarea>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// Valores de valoración por defecto
+let ratings = { tec: 3, tac: 3, fis: 3, psi: 3 };
+let radarChart = null;
+
+// Inicializador del gráfico de radar
+window.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('radarCanvas').getContext('2d');
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Técnico', 'Táctico', 'Físico', 'Psicológico'],
+      datasets: [{
+        label: 'Perfil del Jugador',
+        data: [3, 3, 3, 3],
+        backgroundColor: 'rgba(0, 194, 255, 0.2)',
+        borderColor: '#00c2ff',
+        pointBackgroundColor: '#ff6b00',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0, max: 5, ticks: { stepSize: 1, display: false },
+          grid: { color: '#1b2d42' }, angleLines: { color: '#1b2d42' },
+          pointLabels: { color: '#dde6f0', font: { family: 'Barlow Condensed', size: 12, weight: 'bold' } }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+});
+
+function setR(profile, val) {
+  ratings[profile] = val;
+  document.getElementById(`rv-${profile}`).innerText = val + '.0';
+  document.getElementById(`ptag-${profile}`).innerText = 'Valoración: ' + val;
+  
+  // Pintar estrellas activas
+  const container = document.getElementById(`pc-${profile}`);
+  const stars = container.querySelectorAll('.star');
+  stars.forEach((star, idx) => {
+    if(idx < val) star.classList.add('on');
+    else star.classList.remove('on');
+  });
+
+  // Actualizar Radar de manera fluida
+  if(radarChart) {
+    radarChart.data.datasets[0].data = [ratings.tec, ratings.tac, ratings.fis, ratings.psi];
+    radarChart.update();
+  }
+}
+
+function toggleP(profile) {
+  const body = document.getElementById(`pb-${profile}`);
+  const chev = document.getElementById(`chev-${profile}`);
+  if(body.style.display === 'none') {
+    body.style.display = 'block';
+    chev.classList.add('open');
+  } else {
+    body.style.display = 'none';
+    chev.classList.remove('open');
+  }
+}
+
+function updateStats() {
+  document.getElementById('sv-min').innerText = document.getElementById('minutos').value || '0';
+  document.getElementById('sv-gol').innerText = document.getElementById('goles').value || '0';
+  document.getElementById('sv-asi').innerText = document.getElementById('asistencias').value || '0';
+  document.getElementById('sv-due').innerText = document.getElementById('duelos').value || '0';
+  document.getElementById('sv-pro').innerText = document.getElementById('promedio').value || '0.0';
+  document.getElementById('sv-xg').innerText = document.getElementById('xg').value || '0.0';
+  document.getElementById('sv-xa').innerText = document.getElementById('xa').value || '0.0';
+}
+
+function prevLogo(input, imgId, placeholderId) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById(placeholderId).style.display = 'none';
+      const img = document.getElementById(imgId);
+      img.src = e.target.result;
+      img.style.display = 'block';
+    }
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function clearAll() {
+  document.querySelectorAll('input[type=text], input[type=number]').forEach(el => el.value = '');
+  document.querySelectorAll('textarea').forEach(el => el.value = '');
+  updateStats();
+}
+
+// NUEVA EXPORTACIÓN AUTOMÁTICA BLINDADA CONTRA CUADROS CORTADOS
+function exportPDF() {
+  const element = document.getElementById('reportContent');
+  const originalTextareas = element.querySelectorAll('textarea');
+  const tempBlocks = [];
+
+  // Paso 1: Reemplazar temporalmente los textareas por divs de texto plano nativos
+  originalTextareas.forEach(textarea => {
+    if(textarea.style.display !== 'none') {
+      const displayBlock = document.createElement('div');
+      displayBlock.className = 'text-print-block';
+      displayBlock.innerText = textarea.value || 'Sin observaciones registradas.';
+      
+      // Ocultamos el textarea y metemos el div fluido en su lugar exacto
+      textarea.style.display = 'none';
+      textarea.parentNode.insertBefore(displayBlock, textarea.nextSibling);
+      tempBlocks.push({ textarea, displayBlock });
+    }
+  });
+
+  const { jsPDF } = window.jspdf;
+
+  // Paso 2: Ejecutar la captura limpia sobre el HTML puro estirado
+  html2canvas(element, {
+    scale: 2, 
+    useCORS: true,
+    backgroundColor: '#090d13',
+    windowWidth: 1080 
+  }).then(canvas => {
+    
+    // Paso 3: Volver el sistema a la normalidad inmediatamente (El usuario no nota el cambio)
+    tempBlocks.forEach(item => {
+      item.textarea.style.display = 'block';
+      item.displayBlock.remove();
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 210;
+    const pageHeight = 295;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+      heightLeft -= pageHeight;
+    }
+
+    const player = document.getElementById('nombre').value || 'Informe';
+    pdf.save(`Informe_Scouting_${player.replace(/\s+/g, '_')}.pdf`);
+  }).catch(err => {
+    // Restaurar por seguridad ante cualquier error inesperado
+    tempBlocks.forEach(item => {
+      item.textarea.style.display = 'block';
+      item.displayBlock.remove();
+    });
+    console.error("Error en exportación:", err);
+  });
+}
+</script>
+</body>
+</html>
